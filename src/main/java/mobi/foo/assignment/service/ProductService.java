@@ -7,12 +7,17 @@ import mobi.foo.assignment.entity.Product;
 import mobi.foo.assignment.repository.ProductRepository;
 import mobi.foo.assignment.request.ProductRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@EnableCaching
 public class ProductService {
 
     // auto wiring productRepository
@@ -23,6 +28,7 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     public ApiResponse saveProduct(ProductRequest request) {
         String message = "";
         String status = "";
@@ -47,7 +53,13 @@ public class ProductService {
         return new ApiResponse(status, message);
     }
 
+    @Cacheable("products")
     public ProductDto fetchAllProducts() {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         ProductDto response = new ProductDto();
         List<Product> products = productRepository.findAll();
         response.setData(products);
@@ -63,6 +75,7 @@ public class ProductService {
         return response;
     }
 
+    @Cacheable("product")
     public ProductDto fetchProductById(Long id) {
         ProductDto productDto = new ProductDto();
         Optional<Product> optionalProduct = productRepository.findById(id);
@@ -78,6 +91,7 @@ public class ProductService {
         return productDto;
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     public ApiResponse deleteProduct(Long id) {
         ApiResponse response = new ApiResponse();
         Optional<Product> optionalProduct = productRepository.findById(id);
@@ -94,6 +108,7 @@ public class ProductService {
         return response;
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     public ApiResponse updateProduct(ProductRequest request, Long productId) {
         String message = "";
         String status = "";
