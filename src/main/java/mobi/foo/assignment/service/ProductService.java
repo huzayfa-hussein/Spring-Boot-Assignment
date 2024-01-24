@@ -9,7 +9,6 @@ import mobi.foo.assignment.request.ProductRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Service;
 
@@ -55,8 +54,9 @@ public class ProductService {
 
     @Cacheable("products")
     public ProductDto fetchAllProducts() {
+        // block the thread for 2 seconds to demonstrate caching mechanism
         try {
-            Thread.sleep(5000);
+            Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
