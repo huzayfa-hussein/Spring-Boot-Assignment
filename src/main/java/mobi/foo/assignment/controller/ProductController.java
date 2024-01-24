@@ -39,4 +39,9 @@ public class ProductController {
     public ApiResponse deleteProduct(@RequestParam(name = "product_id") Long id) {
         return productService.deleteProduct(id);
     }
+
+    @PutMapping("/update")
+    public ApiResponse updateProduct(@Validated @RequestBody ProductRequest productRequest, @RequestParam("product_id") Long productId) {
+        return productService.updateProduct(productRequest, productId);
+    }
 }

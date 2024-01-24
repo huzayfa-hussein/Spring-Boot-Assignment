@@ -93,4 +93,24 @@ public class ProductService {
 
         return response;
     }
+
+    public ApiResponse updateProduct(ProductRequest request, Long productId) {
+        String message = "";
+        String status = "";
+        Optional<Product> optionalProduct = productRepository.findById(productId);
+        if (optionalProduct.isPresent()) {
+            Product product = optionalProduct.get();
+            product.setCategory(request.getCategory());
+            product.setPrice(request.getPrice());
+            product.setName(request.getName());
+            product.setIsAvailable(request.getIsAvailable());
+            productRepository.save(product);
+            status = Constants.STATUS_SUCCESS;
+            message = "Product " + request.getName() + " is Updated Successfully";
+        } else {
+            status = Constants.STATUS_FAILED;
+            message = "Product " + request.getName() + " is not Found";
+        }
+        return new ApiResponse(status, message);
+    }
 }
