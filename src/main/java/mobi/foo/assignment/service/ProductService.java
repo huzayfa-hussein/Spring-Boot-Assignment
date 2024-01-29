@@ -1,8 +1,10 @@
 package mobi.foo.assignment.service;
 
+import lombok.RequiredArgsConstructor;
 import mobi.foo.assignment.Constants;
 import mobi.foo.assignment.dto.ApiResponse;
 import mobi.foo.assignment.dto.ProductDto;
+import mobi.foo.assignment.dto.ProductResponse;
 import mobi.foo.assignment.entity.Product;
 import mobi.foo.assignment.repository.ProductRepository;
 import mobi.foo.assignment.request.ProductRequest;
@@ -10,22 +12,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @EnableCaching
+@RequiredArgsConstructor
 public class ProductService {
 
-    // auto wiring productRepository
-    @Autowired
-    private ProductRepository productRepository;
+    //    // auto wiring productRepository
+//    @Autowired
+    private final ProductRepository productRepository;
 
-    public ProductService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
 
     @CacheEvict(value = "products", allEntries = true)
     public ApiResponse saveProduct(ProductRequest request) {
@@ -53,7 +55,8 @@ public class ProductService {
     }
 
     @Cacheable("products")
-    public ProductDto fetchAllProducts() {
+    @Async
+    public CompletableFuture<ProductDto> fetchAllProducts() throws InterruptedException {
         // block the thread for 2 seconds to demonstrate caching mechanism
         try {
             Thread.sleep(2000);
@@ -72,7 +75,31 @@ public class ProductService {
         response.setStatus(status);
         response.setMessage(message);
 
-        return response;
+        return CompletableFuture.completedFuture(response);
+    }
+
+    @Cacheable("products")
+    @Async
+    public CompletableFuture<ProductResponse> fetchAllProductsVersion() throws InterruptedException {
+        // block the thread for 2 seconds to demonstrate caching mechanism
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        ProductResponse response = new ProductResponse();
+        List<Product> products = productRepository.findAll();
+        response.setProducts(products);
+        String status = Constants.STATUS_SUCCESS;
+        String message = "Products Retrieved";
+        if (products.isEmpty()) {
+            status = Constants.STATUS_FAILED;
+            message = "No Products Found!";
+        }
+        response.setStatus(status);
+        response.setMessage(message);
+
+        return CompletableFuture.completedFuture(response);
     }
 
     @Cacheable("product")

@@ -5,29 +5,33 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import mobi.foo.assignment.dto.ApiResponse;
 import mobi.foo.assignment.dto.ProductDto;
+import mobi.foo.assignment.dto.ProductResponse;
 import mobi.foo.assignment.request.ProductRequest;
 import mobi.foo.assignment.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 
 @Tag(name = "Product", description = "Products API")
 @RestController
 @RequestMapping("/api/product")
 @Log4j2
+@RequiredArgsConstructor
 public class ProductController {
-    private ProductService productService;
 
-    @Autowired
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
+    private final ProductService productService;
+    Logger logger = LoggerFactory.getLogger(ProductController.class);
+
 
     @PostMapping("/create")
     public ApiResponse saveProduct(@Validated @RequestBody ProductRequest productRequest) {
+        logger.info("saveProduct {}", productRequest.getName());
         return productService.saveProduct(productRequest);
     }
 
@@ -45,8 +49,13 @@ public class ProductController {
     }
 
     @GetMapping("/get/all")
-    public ProductDto fetchALlProducts() {
-        return productService.fetchAllProducts();
+    public ProductDto fetchALlProducts() throws InterruptedException {
+        return productService.fetchAllProducts().join();
+    }
+
+    @GetMapping("/v2/get/all")
+    public ProductResponse fetchALlProductsV2() throws InterruptedException {
+        return productService.fetchAllProductsVersion().join();
     }
 
     @DeleteMapping("/delete")
